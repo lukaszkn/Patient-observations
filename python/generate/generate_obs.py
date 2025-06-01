@@ -1,9 +1,9 @@
 import argparse
-from datetime import datetime
+import datetime
 import random
 
 
-def create_random_observation(pat_no: str) -> dict:
+def create_random_observation(pat_no: str, past_minutes: int = 200) -> dict:
     temperature = round(random.uniform(35.0, 40.0), 1)
     resp_rate = random.randint(12, 30)
     heart_rate = random.randint(60, 140)
@@ -34,7 +34,7 @@ def create_random_observation(pat_no: str) -> dict:
 
     return {
         "pat_no": pat_no,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": (datetime.datetime.now() - datetime.timedelta(minutes=random.uniform(0, past_minutes))).isoformat(),
         "total_score": total_score,
         "readings": readings
     }
@@ -65,7 +65,7 @@ def setup_reading_type_table(cursor):
         print("Inserted extended reading types.")
 
 
-def generate_sqlite_observations(db_name="patients.db", count=10, patient_count=100):
+def generate_sqlite_observations(db_name="patients.db", count=10, patient_count=100, past_minutes: int = 200):
     import sqlite3
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
@@ -95,17 +95,9 @@ def generate_sqlite_observations(db_name="patients.db", count=10, patient_count=
     cursor.execute("SELECT id, name FROM reading_type;")
     reading_type_map = {name: rid for rid, name in cursor.fetchall()}
 
-    # Get patients
-    cursor.execute("SELECT pat_no FROM patient;")
-    patients = [row[0] for row in cursor.fetchall()]
-    if not patients:
-        print("No patients found.")
-        conn.close()
-        return
-
     for _ in range(count):
-        pat_no = random.choice(patients)
-        obs = create_random_observation(pat_no)
+        pat_no = f"PAT{random.randint(1, patient_count):05d}"
+        obs = create_random_observation(pat_no, past_minutes=past_minutes)
 
         cursor.execute("INSERT INTO observation (pat_no, timestamp, total_score) VALUES (?, ?, ?);",
                        (obs["pat_no"], obs["timestamp"], obs["total_score"]))
@@ -121,41 +113,35 @@ def generate_sqlite_observations(db_name="patients.db", count=10, patient_count=
     print(f"{count} random observations added to database.")
 
 
-def generate_random_observations_to_json(json_file="observations.json", db_name="patients.db", count=10, patient_count=100):
-    import sqlite3, json
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
-    cursor.execute("SELECT pat_no FROM patient;")
-    patients = [row[0] for row in cursor.fetchall()]
-    if not patients:
-        print("No patients found.")
-        conn.close()
-        return
+def generate_random_observations_to_json(json_file="observations.json", count=10, patient_count=100, past_minutes: int = 200):
+    import json
 
-    observations = [create_random_observation(random.choice(patients)) for _ in range(count)]
+    observations = [create_random_observation(pat_no=f"PAT{random.randint(1, patient_count):05d}",
+                                              past_minutes=past_minutes) for _ in range(count)]
 
     with open(json_file, "w", encoding="utf-8") as f:
         json.dump(observations, f, indent=4)
 
-    conn.close()
     print(f"{count} random observations saved to {json_file}")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Command dispatcher for patient data.")
     parser.add_argument("command", help="Command to run")
-    parser.add_argument("count", help="Number of obs to generate", nargs='?')
+    parser.add_argument("count", help="Number of obs to generate", nargs='?', default=100)
     parser.add_argument("patient_count", help="Patients count", nargs='?', default=100)
+    parser.add_argument("past_minutes", help="Obs reading time minutes in the past", nargs='?', default=200)
 
     args = parser.parse_args()
     command = args.command
-    count = int(args.count) if args.count and args.count.isdigit() else 10
-    patient_count = int(args.count) if args.count and args.count.isdigit() else 100
+    count = int(args.count) if args.count and args.count.isdigit() else 100
+    patient_count = int(args.count) if args.patient_count and args.patient_count.isdigit() else 100
+    past_minutes = int(args.past_minutes) if args.past_minutes and args.past_minutes.isdigit() else 200
 
     if command == "sqlite":
-        generate_sqlite_observations(count=count)
+        generate_sqlite_observations(count=count, patient_count=patient_count, past_minutes=past_minutes)
     elif command == "json":
-        generate_random_observations_to_json(count=count)
+        generate_random_observations_to_json(count=count, patient_count=patient_count, past_minutes=past_minutes)
     else:
         print(f"Unknown command: {command}")
 
