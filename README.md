@@ -1,7 +1,41 @@
 # Patient-observations
 
-[How to Run the MapReduce Scripts](README.md#how-to-run-the-mapreduce-scripts)
-[How to Run the PySpark Scripts](README.md#how-to-run-the-pyspark-scripts)
+[How to Run the MapReduce Scripts](README.md#how-to-run-the-mapreduce-scripts)<br>
+[How to Run the PySpark Scripts](README.md#how-to-run-the-pyspark-scripts)<br>
+[How to Run the Scala Spark Scripts](README.md#how-to-run-the-pyspark-scripts)
+
+This project is designed as a hands-on playground for anyone looking to learn and experiment with a complete big data ecosystem on their local machine. It removes the complexity of manual setup by providing a single `docker-compose.yml` file to launch a multi-node cluster with essential data engineering tools.
+
+The core of this repository is a set of example data processing jobs written in three popular frameworks, all running on the same sample dataset of patient medical observations. This allows for a direct comparison of different programming paradigms and execution models.
+
+### Key Features
+
+- **One-Command Setup**: Launch a full data stack with `docker-compose up`.
+- **Complete Ecosystem**: Includes **Hadoop** (HDFS, YARN), **Spark**, **Hive** (with a PostgreSQL metastore), and **Apache Airflow** for orchestration.
+- **Cross-Framework Examples**: Solve the same data problems using:
+    - **MapReduce**: Classic Hadoop processing with Python's `mrjob` library.
+    - **PySpark**: Modern, DataFrame-based data manipulation in Python.
+    - **Scala & Spark**: Statically-typed, high-performance data processing on the JVM.
+- **Sample Data**: Includes JSON files with patient demographics and medical readings, ready for analysis.
+- **Detailed Instructions**: Clear, step-by-step guides on how to run each job both locally (for quick testing) and on the Dockerized cluster.
+
+### What You Can Learn
+
+- **Environment Setup**: How to configure and run a multi-component data stack using Docker.
+- **Comparing Paradigms**: Understand the differences in syntax, performance, and approach between MapReduce, PySpark, and Scala/Spark.
+- **Data Processing Logic**: Implement common data analysis patterns like aggregation, filtering, and joining.
+- **Interacting with HDFS**: Learn how to manage files in a distributed file system.
+- **Submitting Spark Jobs**: See how to submit applications to a Spark cluster from the command line.
+
+### How to Use This Project
+
+1.  **Start the Cluster**: Run `docker-compose up -d` to launch all services.
+2.  **Explore the Scripts**:
+    - The `mrjob` scripts (`average_score_by_patient.py`, etc.) demonstrate classic MapReduce.
+    - The PySpark scripts (`pyspark_average_score.py`, etc.) showcase the Spark DataFrame API in Python.
+    - The `scala_spark` directory contains a complete `sbt` project for Scala-based Spark applications.
+3.  **Run the Jobs**: Follow the detailed instructions in the provided documentation to run the jobs either locally or on the Docker cluster. For the Scala examples, you will need to install `sbt` to build the project JAR first.
+
 
 ## docker-hadoop-spark
 ```
@@ -187,8 +221,73 @@ __`pyspark_join_data.py`__
 docker-compose exec spark-master spark-submit --master spark://spark-master:7077 /data/pyspark_join_data.py
 ```
 
-This completes the task. You now have three PySpark scripts and instructions on how to run them.
+### How to Run the Scala Spark Scripts
 
-(Replace `output_directory` with the actual output directory name).
+Once `sbt` is installed, you can proceed with building and running the scripts.
 
-This completes the task. You now have a `docker-compose.yml` file for a full data engineering stack, three MapReduce scripts, and instructions on how to run them.
+#### 1. Build the JAR
+
+Navigate to the `scala_spark` directory and run the `sbt package` command. This will compile your code and create a JAR file named `scalasparkexamples_2.12-1.0.jar` in the `scala_spark/target/scala-2.12/` directory.
+
+```bash
+cd scala_spark
+sbt package
+```
+
+#### 2. Running Locally
+
+After building the JAR, you can submit the applications to Spark locally. Make sure you are in the `scala_spark` directory.
+
+__`AverageScore.scala`__
+
+```bash
+spark-submit --class AverageScore target/scala-2.12/scalasparkexamples_2.12-1.0.jar ../data/observations_micro.json
+```
+
+__`HighRiskPatients.scala`__
+
+```bash
+# With default threshold (5.0)
+spark-submit --class HighRiskPatients target/scala-2.12/scalasparkexamples_2.12-1.0.jar ../data/observations_micro.json
+
+# With custom threshold
+spark-submit --class HighRiskPatients target/scala-2.12/scalasparkexamples_2.12-1.0.jar ../data/observations_micro.json 7.0
+```
+
+__`JoinData.scala`__
+
+```bash
+spark-submit --class JoinData target/scala-2.12/scalasparkexamples_2.12-1.0.jar ../data/observations_micro.json ../data/patients_micro.json
+```
+
+#### 3. Running on the Dockerized Spark Cluster
+
+__Step 1: Copy the JAR to the Spark Master Container__
+
+First, copy the JAR file from your local machine into the `spark-master` container.
+
+```bash
+docker cp scala_spark/target/scala-2.12/scalasparkexamples_2.12-1.0.jar spark-master:/
+```
+
+__Step 2: Submit the Jobs to the Spark Cluster__
+
+Now you can execute the jobs on the cluster.
+
+__`AverageScore.scala`__
+
+```bash
+docker-compose exec spark-master spark-submit --class AverageScore --master spark://spark-master:7077 /scalasparkexamples_2.12-1.0.jar /data/observations_micro.json
+```
+
+__`HighRiskPatients.scala`__
+
+```bash
+docker-compose exec spark-master spark-submit --class HighRiskPatients --master spark://spark-master:7077 /scalasparkexamples_2.12-1.0.jar /data/observations_micro.json 7.0
+```
+
+__`JoinData.scala`__
+
+```bash
+docker-compose exec spark-master spark-submit --class JoinData --master spark://spark-master:7077 /scalasparkexamples_2.12-1.0.jar /data/observations_micro.json /data/patients_micro.json
+```
