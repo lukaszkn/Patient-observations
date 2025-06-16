@@ -1,5 +1,8 @@
 # Patient-observations
 
+[How to Run the MapReduce Scripts](README.md#how-to-run-the-mapreduce-scripts)
+[How to Run the PySpark Scripts](README.md#how-to-run-the-pyspark-scripts)
+
 ## docker-hadoop-spark
 ```
 CONTAINER ID   IMAGE                                                    NAMES
@@ -115,6 +118,76 @@ And view the content of the output files with:
 ```bash
 docker-compose exec namenode hdfs dfs -cat /user/root/output_directory/part-00000
 ```
+
+### How to Run the PySpark Scripts
+
+You can run these scripts in two ways: locally on your machine for testing, or on the Dockerized Spark cluster.
+
+#### 1. Running Locally
+
+This method is useful for quick testing and debugging. You'll need to have `pyspark` installed (`pip install pyspark`).
+
+__`pyspark_average_score.py`__
+
+```bash
+spark-submit pyspark_average_score.py
+```
+
+__`pyspark_high_risk.py`__
+
+You can run this with the default risk threshold of 5.0:
+
+```bash
+spark-submit pyspark_high_risk.py
+```
+
+Or with a custom threshold:
+
+```bash
+spark-submit pyspark_high_risk.py --threshold 7.0
+```
+
+__`pyspark_join_data.py`__
+
+```bash
+spark-submit pyspark_join_data.py
+```
+
+#### 2. Running on the Dockerized Spark Cluster
+
+This method demonstrates how to run the jobs on the Spark cluster.
+
+__Step 1: Start the Cluster__
+
+If it's not already running, start all the services:
+
+```bash
+docker-compose up -d
+```
+
+__Step 2: Submit the PySpark Jobs__
+
+Use `docker-compose exec` to run `spark-submit` on the `spark-master` container.
+
+__`pyspark_average_score.py`__
+
+```bash
+docker-compose exec spark-master spark-submit --master spark://spark-master:7077 /data/pyspark_average_score.py
+```
+
+__`pyspark_high_risk.py`__
+
+```bash
+docker-compose exec spark-master spark-submit --master spark://spark-master:7077 /data/pyspark_high_risk.py --threshold 7.0
+```
+
+__`pyspark_join_data.py`__
+
+```bash
+docker-compose exec spark-master spark-submit --master spark://spark-master:7077 /data/pyspark_join_data.py
+```
+
+This completes the task. You now have three PySpark scripts and instructions on how to run them.
 
 (Replace `output_directory` with the actual output directory name).
 
