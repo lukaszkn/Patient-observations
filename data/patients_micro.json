@@ -1,0 +1,37 @@
+[
+    {
+        "pat_no": "PAT00001",
+        "name": "Dana Martin MD",
+        "gender": "Female",
+        "birth_date": "1978-01-30",
+        "address": "928 Bryan Pines, Smithburgh, PR 53810"
+    },
+    {
+        "pat_no": "PAT00002",
+        "name": "Lori Oconnor",
+        "gender": "Female",
+        "birth_date": "1948-07-02",
+        "address": "840 Amanda Fords Suite 939, Alexistown, LA 48325"
+    },
+    {
+        "pat_no": "PAT00003",
+        "name": "Paul Mercer",
+        "gender": "Male",
+        "birth_date": "1995-08-13",
+        "address": "3479 Joseph Skyway, Jaredburgh, AK 56850"
+    },
+    {
+        "pat_no": "PAT00004",
+        "name": "Melvin Martinez",
+        "gender": "Male",
+        "birth_date": "1942-06-04",
+        "address": "85331 Jimmy Extensions Apt. 302, South Charles, NH 07030"
+    },
+    {
+        "pat_no": "PAT00005",
+        "name": "Joshua Scott",
+        "gender": "Male",
+        "birth_date": "1959-01-23",
+        "address": "918 Watson Viaduct Suite 981, Longhaven, AZ 05828"
+    }
+]
