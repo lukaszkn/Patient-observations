@@ -2,7 +2,8 @@
 
 [How to Run the MapReduce Scripts](README.md#how-to-run-the-mapreduce-scripts)<br>
 [How to Run the PySpark Scripts](README.md#how-to-run-the-pyspark-scripts)<br>
-[How to Run the Scala Spark Scripts](README.md#how-to-run-the-pyspark-scripts)
+[How to Run the Scala Spark Scripts](README.md#how-to-run-the-scala-spark-scripts)<br>
+[How to Run the Airflow DAG](README.md#how-to-run-the-airflow-dag)
 
 This project is designed as a hands-on playground for anyone looking to learn and experiment with a complete big data ecosystem on their local machine. It removes the complexity of manual setup by providing a single `docker-compose.yml` file to launch a multi-node cluster with essential data engineering tools.
 
@@ -291,3 +292,45 @@ __`JoinData.scala`__
 ```bash
 docker-compose exec spark-master spark-submit --class JoinData --master spark://spark-master:7077 /scalasparkexamples_2.12-1.0.jar /data/observations_micro.json /data/patients_micro.json
 ```
+
+### How to Run the Airflow DAG
+
+__Step 1: Start the Cluster__
+
+If it's not already running, start all the services:
+
+```bash
+docker-compose up -d
+```
+
+__Step 2: Configure the Spark Connection in Airflow__
+
+The `SparkSubmitOperator` requires a connection to be configured in the Airflow UI.
+
+1. Open the Airflow UI by navigating to `http://localhost:8082` in your browser.
+
+2. Log in with the username `admin` and password `admin`.
+
+3. Go to __Admin__ -> __Connections__.
+
+4. Click the `+` button to add a new connection.
+
+5. Fill in the form with the following details:
+
+   - __Connection Id__: `spark_default`
+   - __Connection Type__: `Spark`
+   - __Host__: `spark://spark-master`
+   - __Port__: `7077`
+
+6. Click __Save__.
+
+__Step 3: Trigger the DAG__
+
+1. Go back to the main DAGs view in the Airflow UI.
+2. Find the `spark_patient_data_join` DAG. It might take a minute or two to appear after you start the cluster.
+3. Enable the DAG by clicking the toggle switch next to its name.
+4. Click the "Play" button (the triangle icon) on the right side of the DAG's row to trigger a new run.
+
+You can then click on the DAG name to view the status of the run and see the logs from the Spark job.
+
+This is a sample Airflow DAG that orchestrates a PySpark job on your Dockerized cluster.
