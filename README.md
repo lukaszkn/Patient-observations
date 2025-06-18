@@ -3,7 +3,8 @@
 [How to Run the MapReduce Scripts](README.md#how-to-run-the-mapreduce-scripts)<br>
 [How to Run the PySpark Scripts](README.md#how-to-run-the-pyspark-scripts)<br>
 [How to Run the Scala Spark Scripts](README.md#how-to-run-the-scala-spark-scripts)<br>
-[How to Run the Airflow DAG](README.md#how-to-run-the-airflow-dag)
+[How to Run the Airflow DAG](README.md#how-to-run-the-airflow-dag)<br>
+[How to Run the dbt Project](README.md#how-to-run-the-dbt-project)
 
 This project is designed as a hands-on playground for anyone looking to learn and experiment with a complete big data ecosystem on their local machine. It removes the complexity of manual setup by providing a single `docker-compose.yml` file to launch a multi-node cluster with essential data engineering tools.
 
@@ -334,3 +335,44 @@ __Step 3: Trigger the DAG__
 You can then click on the DAG name to view the status of the run and see the logs from the Spark job.
 
 This is a sample Airflow DAG that orchestrates a PySpark job on your Dockerized cluster.
+
+### How to Run the dbt Project
+
+__Step 1: Install dbt and Dependencies__
+
+You'll need to have Python and `pip` installed. Then, install `dbt-postgres` and `psycopg2`.
+
+```bash
+pip install dbt-postgres psycopg2-binary
+```
+
+__Step 2: Start the Docker Environment__
+
+If it's not already running, start the Docker environment to ensure the PostgreSQL database is available.
+
+```bash
+docker-compose up -d
+```
+
+__Step 3: Load the Data into PostgreSQL__
+
+Run the Python script to load the raw data into the database.
+
+```bash
+python3 load_data_to_postgres.py
+```
+
+__Step 4: Run the dbt Models__
+
+Navigate to the `dbt_project` directory and run the `dbt run` command.
+
+```bash
+cd dbt_project
+dbt run --profiles-dir .
+```
+
+The `--profiles-dir .` flag tells `dbt` to look for the `profiles.yml` file in the current directory.
+
+After the run completes, you can connect to the PostgreSQL database (e.g., using `psql` or a GUI tool) and you will see two new views: `stg_observations` and `patient_summary` in the `public` schema of the `airflow` database.
+
+This is a sample `dbt` project that transforms the patient data in your PostgreSQL database.
