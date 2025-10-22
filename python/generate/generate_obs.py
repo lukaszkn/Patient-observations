@@ -110,7 +110,7 @@ def generate_sqlite_observations(db_name="patients.db", count=10, patient_count=
 
     conn.commit()
     conn.close()
-    print(f"{count} random observations added to database.")
+    print(f"{count} random observations for {patient_count} patients added to database.")
 
 
 def generate_random_observations_to_json(json_file="observations.json", count=10, patient_count=100, past_minutes: int = 200):
@@ -122,7 +122,7 @@ def generate_random_observations_to_json(json_file="observations.json", count=10
     with open(json_file, "w", encoding="utf-8") as f:
         json.dump(observations, f, indent=4)
 
-    print(f"{count} random observations saved to {json_file}")
+    print(f"{count} random observations for {patient_count} patients saved to {json_file}")
 
 
 def main():
@@ -135,7 +135,7 @@ def main():
     args = parser.parse_args()
     command = args.command
     count = int(args.count) if args.count and args.count.isdigit() else 100
-    patient_count = int(args.count) if args.patient_count and args.patient_count.isdigit() else 100
+    patient_count = int(args.patient_count) if args.patient_count and args.patient_count.isdigit() else 100
     past_minutes = int(args.past_minutes) if args.past_minutes and args.past_minutes.isdigit() else 200
 
     if command == "sqlite":
